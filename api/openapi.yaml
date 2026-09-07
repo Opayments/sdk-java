@@ -1,0 +1,1453 @@
+openapi: 3.1.0
+info:
+  license:
+    name: Proprietary
+    url: https://opayments.io
+  title: OPayments API
+  version: 1.0.0
+servers:
+- url: https://api.opayments.io/api/v1
+security:
+- ProjectIdentity: []
+  RequestSignature: []
+tags:
+- description: Создание оплаты.
+  name: Payment
+  x-displayName: Платёж
+- description: Платежи проекта.
+  name: Payments
+  x-displayName: Платежи
+- description: Возвраты.
+  name: Refunds
+  x-displayName: Возвраты
+- description: Баланс.
+  name: Balance
+  x-displayName: Баланс
+paths:
+  /payments/sbp:
+    post:
+      operationId: createSbpPayment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSbpPaymentRequest"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/SbpPaymentExisting"
+        "201":
+          $ref: "#/components/responses/SbpPaymentCreated"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
+        "504":
+          $ref: "#/components/responses/GatewayTimeoutError"
+      summary: Создать платёж по СБП
+      tags:
+      - Payment
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /payments/tpay:
+    post:
+      operationId: createTpayPayment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTpayPaymentRequest"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/TpayPaymentExisting"
+        "201":
+          $ref: "#/components/responses/TpayPaymentCreated"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
+        "504":
+          $ref: "#/components/responses/GatewayTimeoutError"
+      summary: Создать платёж через T-Pay
+      tags:
+      - Payment
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /payments:
+    get:
+      description: Возвращает список платежей проекта.
+      operationId: listPayments
+      parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/PaymentStatuses"
+      - $ref: "#/components/parameters/PaymentMethod"
+      - $ref: "#/components/parameters/AmountFrom"
+      - $ref: "#/components/parameters/AmountTo"
+      - $ref: "#/components/parameters/CreatedFrom"
+      - $ref: "#/components/parameters/CreatedTo"
+      - $ref: "#/components/parameters/Sort"
+      - $ref: "#/components/parameters/SortDirection"
+      - $ref: "#/components/parameters/Cursor"
+      - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          $ref: "#/components/responses/PaymentList"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+      summary: Найти платежи
+      tags:
+      - Payments
+      x-accepts:
+      - application/json
+  /payments/{paymentId}:
+    get:
+      operationId: getPayment
+      parameters:
+      - $ref: "#/components/parameters/PaymentId"
+      responses:
+        "200":
+          $ref: "#/components/responses/PaymentDetails"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+      summary: Получить платёж
+      tags:
+      - Payments
+      x-accepts:
+      - application/json
+  /payments/{paymentId}/refund:
+    get:
+      operationId: getPaymentRefund
+      parameters:
+      - $ref: "#/components/parameters/PaymentId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Refund"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/RefundNotFoundError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+      summary: Получить возврат
+      tags:
+      - Refunds
+      x-accepts:
+      - application/json
+    post:
+      operationId: createPaymentRefund
+      parameters:
+      - $ref: "#/components/parameters/PaymentId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRefundRequest"
+        required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/RefundExisting"
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PendingRefund"
+          description: Возврат принят в обработку.
+          headers:
+            Location:
+              explode: false
+              schema:
+                format: uri-reference
+                type: string
+              style: simple
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          $ref: "#/components/responses/RefundConflictError"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaTypeError"
+        "422":
+          $ref: "#/components/responses/StateError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+        "502":
+          $ref: "#/components/responses/BadGatewayError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
+        "504":
+          $ref: "#/components/responses/GatewayTimeoutError"
+      summary: Создать возврат
+      tags:
+      - Refunds
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /balance:
+    get:
+      description: Возвращает текущий баланс проекта.
+      operationId: getBalance
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                projectId: a1b2c3d4-e5f6-4a7b-8c9d-0123456789ab
+                balance: 150000
+                currency: RUB
+              schema:
+                $ref: "#/components/schemas/Balance"
+          description: Баланс проекта.
+          headers:
+            X-Request-Id:
+              $ref: "#/components/headers/RequestId"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
+      summary: Получить баланс
+      tags:
+      - Balance
+      x-accepts:
+      - application/json
+components:
+  headers:
+    RequestId:
+      description: Идентификатор запроса для корреляции.
+      explode: false
+      schema:
+        type: string
+      style: simple
+  parameters:
+    PaymentId:
+      explode: false
+      in: path
+      name: paymentId
+      required: true
+      schema:
+        example: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+        format: uuid
+        type: string
+      style: simple
+    OrderId:
+      description: Идентификатор заказа в системе мерчанта.
+      explode: true
+      in: query
+      name: orderId
+      required: false
+      schema:
+        maxLength: 128
+        type: string
+      style: form
+    PaymentStatuses:
+      explode: true
+      in: query
+      name: status
+      required: false
+      schema:
+        items:
+          enum:
+          - pending
+          - succeeded
+          - cancelled
+          - chargebacked
+          - refunded
+          type: string
+        type: array
+        default: null
+      style: form
+    PaymentMethod:
+      explode: true
+      in: query
+      name: paymentMethod
+      required: false
+      schema:
+        enum:
+        - sbp
+        - tpay
+        type: string
+      style: form
+    AmountFrom:
+      description: "Не больше amountTo, если он передан."
+      explode: true
+      in: query
+      name: amountFrom
+      required: false
+      schema:
+        minimum: 1
+        type: integer
+      style: form
+    AmountTo:
+      description: "Не меньше amountFrom, если он передан."
+      explode: true
+      in: query
+      name: amountTo
+      required: false
+      schema:
+        minimum: 1
+        type: integer
+      style: form
+    CreatedFrom:
+      description: "Не позже createdTo, если он передан."
+      explode: true
+      in: query
+      name: createdFrom
+      required: false
+      schema:
+        format: date-time
+        type: string
+      style: form
+    CreatedTo:
+      description: "Не раньше createdFrom, если он передан."
+      explode: true
+      in: query
+      name: createdTo
+      required: false
+      schema:
+        format: date-time
+        type: string
+      style: form
+    Sort:
+      explode: true
+      in: query
+      name: sort
+      required: false
+      schema:
+        default: createdAt
+        enum:
+        - createdAt
+        - amount
+        type: string
+      style: form
+    SortDirection:
+      explode: true
+      in: query
+      name: sortDirection
+      required: false
+      schema:
+        default: desc
+        enum:
+        - asc
+        - desc
+        type: string
+      style: form
+    Cursor:
+      description: Непрозрачный курсор из предыдущего ответа. Используйте только с
+        теми же фильтрами и сортировкой.
+      explode: true
+      in: query
+      name: cursor
+      required: false
+      schema:
+        type: string
+      style: form
+    Limit:
+      description: Количество записей в ответе.
+      explode: true
+      in: query
+      name: limit
+      required: false
+      schema:
+        default: 20
+        maximum: 100
+        minimum: 1
+        type: integer
+      style: form
+    WebhookToken:
+      description: "Передаётся, если токен задан в настройках проекта."
+      explode: false
+      in: header
+      name: X-Webhook-Token
+      required: false
+      schema: {}
+      style: simple
+  responses:
+    SbpPaymentExisting:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payment"
+      description: Ранее созданный платёж СБП.
+      headers:
+        Location:
+          explode: false
+          schema:
+            format: uri-reference
+            type: string
+          style: simple
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    SbpPaymentCreated:
+      content:
+        application/json:
+          example:
+            paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+            orderId: order-20260903-001
+            amount: 150000
+            currency: RUB
+            description: Подписка за сентябрь
+            paymentMethod: sbp
+            status: pending
+            paymentUrl: https://pay.opayments.io/sbp/c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+            expiresAt: 2026-09-03T12:30:00.000+00:00
+            createdAt: 2026-09-03T12:00:00.000+00:00
+            updatedAt: 2026-09-03T12:00:00.000+00:00
+          schema:
+            $ref: "#/components/schemas/CreatedPayment"
+      description: Платёж через СБП создан.
+      headers:
+        Location:
+          explode: false
+          schema:
+            format: uri-reference
+            type: string
+          style: simple
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    TpayPaymentExisting:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Payment"
+      description: Ранее созданный платёж T-Pay.
+      headers:
+        Location:
+          explode: false
+          schema:
+            format: uri-reference
+            type: string
+          style: simple
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    TpayPaymentCreated:
+      content:
+        application/json:
+          example:
+            paymentId: 4f4f3e2c-74fb-4bac-b37a-8e8560c1b01f
+            orderId: order-20260903-002
+            amount: 250000
+            currency: RUB
+            description: Заказ № 4821
+            paymentMethod: tpay
+            status: pending
+            paymentUrl: https://pay.opayments.io/tpay/4f4f3e2c-74fb-4bac-b37a-8e8560c1b01f
+            expiresAt: 2026-09-03T12:30:00.000+00:00
+            createdAt: 2026-09-03T12:00:00.000+00:00
+            updatedAt: 2026-09-03T12:00:00.000+00:00
+          schema:
+            $ref: "#/components/schemas/CreatedPayment"
+      description: Платёж через T-Pay создан.
+      headers:
+        Location:
+          explode: false
+          schema:
+            format: uri-reference
+            type: string
+          style: simple
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    RefundExisting:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Refund"
+      description: Ранее созданный возврат с теми же параметрами.
+      headers:
+        Location:
+          explode: false
+          schema:
+            format: uri-reference
+            type: string
+          style: simple
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    Refund:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Refund"
+      description: Возврат.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    RefundNotFoundError:
+      content:
+        application/json:
+          example:
+            error:
+              type: resource_error
+              code: refund_not_found
+              message: Возврат не найден
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Возврат не найден.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    PaymentDetails:
+      content:
+        application/json:
+          example:
+            paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+            orderId: order-20260903-001
+            amount: 150000
+            currency: RUB
+            description: Заказ № 4820
+            paymentMethod: sbp
+            status: refunded
+            createdAt: 2026-09-03T12:00:00.000+00:00
+            updatedAt: 2026-09-03T12:06:00.000+00:00
+            refund:
+              paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+              amount: 150000
+              currency: RUB
+              status: accepted
+              reason: Возврат товара
+              acceptedAt: 2026-09-03T12:06:00.000+00:00
+              createdAt: 2026-09-03T12:05:00.000+00:00
+              updatedAt: 2026-09-03T12:06:00.000+00:00
+          schema:
+            $ref: "#/components/schemas/PaymentDetails"
+      description: Платёж.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    PaymentList:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PaymentList"
+      description: Страница платежей.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    ValidationError:
+      content:
+        application/json:
+          example:
+            error:
+              type: validation_error
+              code: invalid_request
+              message: Проверьте параметры запроса
+              details:
+              - field: amount
+                code: too_small
+                message: Сумма должна быть больше нуля
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Некорректные параметры запроса.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    UnauthorizedError:
+      content:
+        application/json:
+          example:
+            error:
+              type: authentication_error
+              code: invalid_signature
+              message: Подпись запроса не прошла проверку
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Не пройдена аутентификация или проверка подписи.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    NotFoundError:
+      content:
+        application/json:
+          example:
+            error:
+              type: resource_error
+              code: payment_not_found
+              message: Платёж не найден
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Ресурс не найден.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    ForbiddenError:
+      content:
+        application/json:
+          example:
+            error:
+              type: permission_error
+              code: project_inactive
+              message: Проект неактивен
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Операция недоступна для проекта.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    ConflictError:
+      content:
+        application/json:
+          example:
+            error:
+              type: conflict_error
+              code: order_id_params_mismatch
+              message: Параметры текущего платежа по заказу отличаются
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Запрос конфликтует с текущим состоянием ресурса.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    RefundConflictError:
+      content:
+        application/json:
+          example:
+            error:
+              type: conflict_error
+              code: refund_params_mismatch
+              message: Параметры ранее созданного возврата отличаются
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Параметры ранее созданного возврата отличаются.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    UnsupportedMediaTypeError:
+      content:
+        application/json:
+          example:
+            error:
+              type: request_error
+              code: unsupported_media_type
+              message: Используйте Content-Type application/json
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Тело запроса должно быть JSON.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    StateError:
+      content:
+        application/json:
+          example:
+            error:
+              type: state_error
+              code: refund_amount_exceeds_remaining
+              message: Сумма возврата превышает доступный остаток платежа
+              details:
+              - field: amount
+                code: greater_than_remaining
+                message: "Доступно к возврату: 100000"
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Операция невозможна в текущем статусе платежа.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    InternalError:
+      content:
+        application/json:
+          example:
+            error:
+              type: internal_error
+              code: internal_error
+              message: Попробуйте выполнить запрос позже
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Внутренняя ошибка сервиса.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    BadGatewayError:
+      content:
+        application/json:
+          example:
+            error:
+              type: upstream_error
+              code: upstream_invalid_response
+              message: Попробуйте выполнить запрос позже
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Внешний сервис вернул некорректный ответ.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    ServiceUnavailableError:
+      content:
+        application/json:
+          example:
+            error:
+              type: upstream_error
+              code: service_unavailable
+              message: Попробуйте выполнить запрос позже
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Сервис временно недоступен.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    GatewayTimeoutError:
+      content:
+        application/json:
+          example:
+            error:
+              type: upstream_error
+              code: upstream_timeout
+              message: Попробуйте выполнить запрос позже
+              requestId: 7f660348-f20e-4577-9e8b-e5b3e52d8ee3
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Внешний сервис не ответил вовремя.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+    RateLimited:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+      description: Превышен лимит запросов.
+      headers:
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+        X-RateLimit-Limit:
+          explode: false
+          schema:
+            minimum: 1
+            type: integer
+          style: simple
+        X-RateLimit-Remaining:
+          explode: false
+          schema:
+            minimum: 0
+            type: integer
+          style: simple
+        X-RateLimit-Reset:
+          description: Unix-время сброса лимита.
+          explode: false
+          schema:
+            minimum: 0
+            type: integer
+          style: simple
+        Retry-After:
+          explode: false
+          schema:
+            minimum: 1
+            type: integer
+          style: simple
+  schemas:
+    CreateSbpPaymentRequest:
+      additionalProperties: false
+      example:
+        orderId: order-20260903-001
+        amount: 150000
+        currency: RUB
+        description: Подписка за сентябрь
+        ip: 203.0.113.10
+        callbackUrl: https://shop.example.com/payment-callback
+        successUrl: https://shop.example.com/payment-success
+        failedUrl: https://shop.example.com/payment-failed
+      properties:
+        orderId:
+          description: Идентификатор заказа в системе мерчанта.
+          maxLength: 128
+          minLength: 1
+          type: string
+        amount:
+          description: Сумма в копейках.
+          minimum: 1
+          type: integer
+        currency:
+          enum:
+          - RUB
+          type: string
+        description:
+          maxLength: 255
+          type: string
+        ip:
+          description: "IP-адрес плательщика: IPv4 или IPv6."
+          maxLength: 45
+          type: string
+        callbackUrl:
+          description: HTTPS-адрес уведомлений.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        successUrl:
+          description: HTTPS-адрес для успешной оплаты.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        failedUrl:
+          description: HTTPS-адрес для отменённой оплаты.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        deviceData:
+          $ref: "#/components/schemas/DeviceData"
+      required:
+      - amount
+      - callbackUrl
+      - currency
+      - failedUrl
+      - ip
+      - orderId
+      - successUrl
+    CreateTpayPaymentRequest:
+      additionalProperties: false
+      example:
+        orderId: order-20260903-002
+        amount: 150000
+        currency: RUB
+        description: Подписка за сентябрь
+        ip: 203.0.113.10
+        callbackUrl: https://shop.example.com/payment-callback
+        successUrl: https://shop.example.com/payment-success
+        failedUrl: https://shop.example.com/payment-failed
+        deviceData:
+          platformType: mobile
+          os: iOS
+          browser: Safari
+      properties:
+        orderId:
+          description: Идентификатор заказа в системе мерчанта.
+          maxLength: 128
+          minLength: 1
+          type: string
+        amount:
+          description: Сумма в копейках.
+          minimum: 1
+          type: integer
+        currency:
+          enum:
+          - RUB
+          type: string
+        description:
+          maxLength: 255
+          type: string
+        ip:
+          description: "IP-адрес плательщика: IPv4 или IPv6."
+          maxLength: 45
+          type: string
+        callbackUrl:
+          description: HTTPS-адрес уведомлений.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        successUrl:
+          description: HTTPS-адрес для успешной оплаты.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        failedUrl:
+          description: HTTPS-адрес для отменённой оплаты.
+          format: uri
+          maxLength: 2048
+          pattern: ^https://
+          type: string
+        deviceData:
+          $ref: "#/components/schemas/TpayDeviceData"
+      required:
+      - amount
+      - callbackUrl
+      - currency
+      - deviceData
+      - failedUrl
+      - ip
+      - orderId
+      - successUrl
+    DeviceData:
+      additionalProperties: false
+      example:
+        platformType: desktop
+        os: macOS
+        browser: Chrome
+        language: ru-RU
+        timezoneName: Europe/Moscow
+        userAgent: Mozilla/5.0
+      properties:
+        platformType:
+          enum:
+          - mobile
+          - desktop
+          type: string
+        os:
+          maxLength: 64
+          minLength: 1
+          type: string
+        browser:
+          maxLength: 64
+          minLength: 1
+          type: string
+        language:
+          maxLength: 64
+          type: string
+        timezoneName:
+          maxLength: 128
+          type: string
+        userAgent:
+          maxLength: 1024
+          type: string
+    TpayDeviceData:
+      allOf:
+      - $ref: "#/components/schemas/DeviceData"
+      - required:
+        - browser
+        - os
+        - platformType
+        type: object
+    Payment:
+      example:
+        paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+        orderId: order-20260903-001
+        amount: 150000
+        currency: RUB
+        description: Подписка за сентябрь
+        paymentMethod: sbp
+        status: pending
+        paymentUrl: https://pay.opayments.io/sbp/c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+        expiresAt: 2026-09-03T12:30:00.000+00:00
+        createdAt: 2026-09-03T12:00:00.000+00:00
+        updatedAt: 2026-09-03T12:00:00.000+00:00
+      properties:
+        paymentId:
+          format: uuid
+          type: string
+        orderId:
+          type: string
+        amount:
+          description: Сумма в копейках.
+          minimum: 1
+          type: integer
+        currency:
+          enum:
+          - RUB
+          type: string
+        description:
+          maxLength: 255
+          type: string
+        paymentMethod:
+          enum:
+          - sbp
+          - tpay
+          type: string
+        status:
+          enum:
+          - pending
+          - succeeded
+          - cancelled
+          - chargebacked
+          - refunded
+          type: string
+        paymentUrl:
+          description: Адрес оплаты для платежа в статусе pending.
+          format: uri
+          type: string
+        expiresAt:
+          format: date-time
+          type: string
+        failureCode:
+          type: string
+        failureMessage:
+          type: string
+        completedAt:
+          format: date-time
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - amount
+      - createdAt
+      - currency
+      - orderId
+      - paymentId
+      - paymentMethod
+      - status
+      - updatedAt
+    CreatedPayment:
+      allOf:
+      - $ref: "#/components/schemas/Payment"
+      - properties:
+          paymentUrl:
+            format: uri
+            type: string
+          expiresAt:
+            format: date-time
+            type: string
+        required:
+        - expiresAt
+        - paymentUrl
+      example:
+        paymentId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        orderId: orderId
+        amount: 1
+        currency: RUB
+        description: description
+        paymentMethod: sbp
+        status: pending
+        paymentUrl: https://openapi-generator.tech
+        expiresAt: 2000-01-23T04:56:07.000+00:00
+        failureCode: failureCode
+        failureMessage: failureMessage
+        completedAt: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+    PaymentDetails:
+      allOf:
+      - $ref: "#/components/schemas/Payment"
+      - properties:
+          refund:
+            $ref: "#/components/schemas/Refund"
+      example:
+        paymentId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        orderId: orderId
+        amount: 1
+        currency: RUB
+        description: description
+        paymentMethod: sbp
+        status: pending
+        paymentUrl: https://openapi-generator.tech
+        expiresAt: 2000-01-23T04:56:07.000+00:00
+        failureCode: failureCode
+        failureMessage: failureMessage
+        completedAt: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+        refund:
+          paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+          amount: 50000
+          currency: RUB
+          status: accepted
+          reason: Возврат товара
+          acceptedAt: 2026-09-03T12:06:00.000+00:00
+          createdAt: 2026-09-03T12:05:00.000+00:00
+          updatedAt: 2026-09-03T12:05:00.000+00:00
+    CreateRefundRequest:
+      additionalProperties: false
+      example:
+        amount: 50000
+        reason: Возврат товара
+      properties:
+        amount:
+          description: Сумма в копейках.
+          minimum: 1
+          type: integer
+        reason:
+          maxLength: 255
+          type: string
+    Refund:
+      example:
+        paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+        amount: 50000
+        currency: RUB
+        status: accepted
+        reason: Возврат товара
+        acceptedAt: 2026-09-03T12:06:00.000+00:00
+        createdAt: 2026-09-03T12:05:00.000+00:00
+        updatedAt: 2026-09-03T12:05:00.000+00:00
+      properties:
+        paymentId:
+          format: uuid
+          type: string
+        amount:
+          description: Сумма в копейках.
+          minimum: 1
+          type: integer
+        currency:
+          enum:
+          - RUB
+          type: string
+        status:
+          enum:
+          - pending
+          - accepted
+          - declined
+          type: string
+        reason:
+          type: string
+        failureCode:
+          type: string
+        failureMessage:
+          type: string
+        acceptedAt:
+          format: date-time
+          type: string
+        declinedAt:
+          format: date-time
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - amount
+      - createdAt
+      - currency
+      - paymentId
+      - status
+      - updatedAt
+    Balance:
+      example:
+        projectId: a1b2c3d4-e5f6-4a7b-8c9d-0123456789ab
+        balance: 150000
+        currency: RUB
+      properties:
+        projectId:
+          format: uuid
+          type: string
+        balance:
+          type: integer
+        currency:
+          enum:
+          - RUB
+          type: string
+      required:
+      - balance
+      - currency
+      - projectId
+    PaymentList:
+      example:
+        items:
+        - paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+          orderId: order-20260903-001
+          amount: 150000
+          currency: RUB
+          paymentMethod: sbp
+          status: pending
+          createdAt: 2026-09-03T12:00:00.000+00:00
+          updatedAt: 2026-09-03T12:00:00.000+00:00
+        - paymentId: 4f4f3e2c-74fb-4bac-b37a-8e8560c1b01f
+          orderId: order-20260903-002
+          amount: 250000
+          currency: RUB
+          paymentMethod: tpay
+          status: succeeded
+          createdAt: 2026-09-03T11:45:00.000+00:00
+          updatedAt: 2026-09-03T11:46:12.000+00:00
+        nextCursor: eyJjcmVhdGVkX2F0IjoiMjAyNi0wOS0wM1QxMTo0NTowMFoiLCJwYXltZW50X2lkIjoiNGY0ZjNlMmMtNzRmYi00YmFjLWIzN2EtOGU4NTYwYzFiMDFmIn0
+        hasMore: true
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/Payment"
+          type: array
+          default: null
+        nextCursor:
+          type: string
+        hasMore:
+          type: boolean
+      required:
+      - hasMore
+      - items
+      - nextCursor
+    PrepaymentPayment:
+      allOf:
+      - $ref: "#/components/schemas/Payment"
+      - properties:
+          status:
+            enum:
+            - pending
+            type: string
+        required:
+        - status
+    PrepaymentWebhookNotification:
+      example:
+        notificationId: 6c0e8400-e29b-41d4-a716-446655440000
+        notificationType: prepayment
+        notificationDate: 2026-09-03T12:01:00Z
+        payment:
+          paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+          orderId: order-20260903-001
+          amount: 150000
+          currency: RUB
+          paymentMethod: sbp
+          status: pending
+          createdAt: 2026-09-03T12:00:00Z
+          updatedAt: 2026-09-03T12:01:00Z
+      properties:
+        notificationId:
+          format: uuid
+          type: string
+        notificationType:
+          enum:
+          - prepayment
+          type: string
+        notificationDate:
+          format: date-time
+          type: string
+        payment:
+          $ref: "#/components/schemas/PrepaymentPayment"
+      required:
+      - notificationDate
+      - notificationId
+      - notificationType
+      - payment
+    PostpaymentWebhookNotification:
+      example:
+        notificationId: 7d1f9501-f30c-42e5-b827-557766551111
+        notificationType: postpayment
+        notificationDate: 2026-09-03T12:03:00Z
+        payment:
+          paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+          orderId: order-20260903-001
+          amount: 150000
+          currency: RUB
+          paymentMethod: sbp
+          status: succeeded
+          createdAt: 2026-09-03T12:00:00Z
+          updatedAt: 2026-09-03T12:03:00Z
+      properties:
+        notificationId:
+          format: uuid
+          type: string
+        notificationType:
+          enum:
+          - postpayment
+          type: string
+        notificationDate:
+          format: date-time
+          type: string
+        payment:
+          $ref: "#/components/schemas/FinalPayment"
+      required:
+      - notificationDate
+      - notificationId
+      - notificationType
+      - payment
+    FinalPayment:
+      allOf:
+      - $ref: "#/components/schemas/Payment"
+      - properties:
+          status:
+            enum:
+            - succeeded
+            - cancelled
+            - chargebacked
+            - refunded
+            type: string
+        required:
+        - status
+    FinalRefund:
+      allOf:
+      - $ref: "#/components/schemas/Refund"
+      - properties:
+          status:
+            enum:
+            - accepted
+            - declined
+            type: string
+        required:
+        - status
+    PendingRefund:
+      allOf:
+      - $ref: "#/components/schemas/Refund"
+      - properties:
+          status:
+            enum:
+            - pending
+            type: string
+        required:
+        - status
+      example:
+        paymentId: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        amount: 1
+        currency: RUB
+        status: pending
+        reason: reason
+        failureCode: failureCode
+        failureMessage: failureMessage
+        acceptedAt: 2000-01-23T04:56:07.000+00:00
+        declinedAt: 2000-01-23T04:56:07.000+00:00
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        updatedAt: 2000-01-23T04:56:07.000+00:00
+    RefundWebhookNotification:
+      example:
+        notificationId: 8e2fa602-a41d-43f6-c938-668877662222
+        notificationType: refund
+        notificationDate: 2026-09-03T12:06:00Z
+        paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+        refund:
+          paymentId: c9ee7c85-4cc0-494f-a0de-0af7257a66a6
+          amount: 50000
+          currency: RUB
+          status: accepted
+          acceptedAt: 2026-09-03T12:06:00Z
+          createdAt: 2026-09-03T12:05:00Z
+          updatedAt: 2026-09-03T12:06:00Z
+      properties:
+        notificationId:
+          format: uuid
+          type: string
+        notificationType:
+          enum:
+          - refund
+          type: string
+        notificationDate:
+          format: date-time
+          type: string
+        paymentId:
+          format: uuid
+          type: string
+        refund:
+          $ref: "#/components/schemas/FinalRefund"
+      required:
+      - notificationDate
+      - notificationId
+      - notificationType
+      - paymentId
+      - refund
+    Error:
+      example:
+        error:
+          type: type
+          code: code
+          message: message
+          details:
+          - field: field
+            code: code
+            message: message
+          - field: field
+            code: code
+            message: message
+          requestId: requestId
+      properties:
+        error:
+          $ref: "#/components/schemas/Error_error"
+      required:
+      - error
+    Error_error_details_inner:
+      example:
+        field: field
+        code: code
+        message: message
+      properties:
+        field:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - field
+      - message
+    Error_error:
+      example:
+        type: type
+        code: code
+        message: message
+        details:
+        - field: field
+          code: code
+          message: message
+        - field: field
+          code: code
+          message: message
+        requestId: requestId
+      properties:
+        type:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/Error_error_details_inner"
+          type: array
+          default: null
+        requestId:
+          type: string
+      required:
+      - code
+      - message
+      - requestId
+      - type
+  securitySchemes:
+    ProjectIdentity:
+      in: header
+      name: X-Identity
+      type: apiKey
+    RequestSignature:
+      in: header
+      name: X-Signature
+      type: apiKey
+x-tagGroups:
+- name: Справочник API
+  tags:
+  - Payment
+  - Payments
+  - Refunds
+  - Balance
+
